@@ -23,11 +23,14 @@ public class PlayerController : MonoBehaviour {
 	Rigidbody body;
 	public List<GameObject> hitboxes = new List<GameObject>();
 
+	public delegate void EnemyHit(int damage);
+	public static event EnemyHit enemyHit = delegate{};
+
+
 	void Start(){
 		anim = GetComponentInChildren<Animator>();
 		body = GetComponent<Rigidbody>();
-		GetHitboxes();
-		
+		InitializeHitboxes();
 	}
 
 
@@ -48,12 +51,8 @@ public class PlayerController : MonoBehaviour {
 		}
 
 		
-		
-		
-		
 		//Animation
 		if(anim.GetCurrentAnimatorStateInfo(0).IsName("Idle")){
-			Debug.Log("IDLE");
 			isAttacking = false;
 			anim.SetBool("isAttacking", isAttacking);
 		}
@@ -126,7 +125,11 @@ public class PlayerController : MonoBehaviour {
 
 	void OnTriggerEnter(Collider c){
 		if(c.gameObject.tag == "Enemy")
+		{
 			Debug.Log("Hit!");
+			enemyHit(10);
+		}
+
 	}
 
 ////FUNCTIONS
@@ -137,9 +140,11 @@ public class PlayerController : MonoBehaviour {
 
 
 
-	void GetHitboxes(){
-		for(int i = 0; i < GameObject.FindGameObjectsWithTag("Hitbox").Length; i++){
-			hitboxes.Add(GameObject.FindGameObjectsWithTag("Hitbox")[i]);
+	void InitializeHitboxes()
+	{ 
+		hitboxes.AddRange(GameObject.FindGameObjectsWithTag("Hitbox"));
+
+		for(int i = 0; i < hitboxes.Count; i++){
 			hitboxes[i].gameObject.GetComponent<BoxCollider>().enabled = false;
 		}
 	}
