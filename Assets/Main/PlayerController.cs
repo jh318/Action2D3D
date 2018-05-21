@@ -13,8 +13,7 @@ public class PlayerController : MonoBehaviour {
 	float vertical;
 	float forwardVelocity = 0.0f;
 
-	bool Moving = false;
-	bool Ground = false;
+	bool grounded = false;
 	float lastHorizontalInput;
 
 	Animator anim;
@@ -78,7 +77,7 @@ public class PlayerController : MonoBehaviour {
 				anim.SetBool("ComboSuccess", true);
 			}
 		}
-		
+
 		anim.SetFloat("forwardVelocity", Mathf.Abs(horizontal));
 	}
 
@@ -99,11 +98,11 @@ public class PlayerController : MonoBehaviour {
 		}
 
 		///Set Vertical movement
-		if(vertical > 0.0f && Ground)
+		if(vertical > 0.0f && grounded)
 		{
 			//Jump!
 			body.velocity += JumpVelocity();
-			Ground = false;
+			grounded = false;
 		}
 		
 		forwardVelocity = Mathf.Clamp(forwardVelocity, -maxSpeed, maxSpeed);
@@ -117,7 +116,7 @@ public class PlayerController : MonoBehaviour {
 
 	void OnCollisionEnter(Collision c){
 		if(Vector3.Dot(transform.up, c.gameObject.transform.up) == 1.0f){
-			Ground = true;
+			grounded = true;
 		}
 	}
 
