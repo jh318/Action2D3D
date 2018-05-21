@@ -13,10 +13,8 @@ public class PlayerController : MonoBehaviour {
 	float vertical;
 	float forwardVelocity = 0.0f;
 
-	bool isMoving = false;
-	bool isGrounded = false;
-	bool isTurning180 = false;
-	bool isAttacking = false;
+	bool Moving = false;
+	bool Ground = false;
 	float lastHorizontalInput;
 
 	Animator anim;
@@ -26,11 +24,23 @@ public class PlayerController : MonoBehaviour {
 	public delegate void EnemyHit(int damage);
 	public static event EnemyHit enemyHit = delegate{};
 
+	enum AttackTransition {None,Z,X,C};
+	enum StateTransition {Base, Override, Additive};
+	AttackTransition attackTransition;
+	StateTransition stateTransition;
+
+	class AttackType{
+		float damage = 1;
+		float knockback = 1;
+	}
+
 
 	void Start(){
 		anim = GetComponentInChildren<Animator>();
 		body = GetComponent<Rigidbody>();
-		InitializeHitboxes();
+		attackTransition = AttackTransition.None;
+		stateTransition = StateTransition.Base;		
+		//InitializeHitboxes();
 	}
 
 
@@ -52,36 +62,24 @@ public class PlayerController : MonoBehaviour {
 
 		
 		//Animation
-		if(anim.GetCurrentAnimatorStateInfo(0).IsName("Idle")){
-			isAttacking = false;
-			anim.SetBool("isAttacking", isAttacking);
-		}
 
-		if(Input.GetKeyDown(KeyCode.Z)){
-			isAttacking = true;
-			anim.SetBool("isAttacking", isAttacking);
-			anim.SetTrigger("attackTrigger");
-
-		}
-
-
-		anim.SetBool("isMoving", isMoving);
-		anim.SetFloat("forwardVelocity", Mathf.Abs(horizontal));
-
-		if(Mathf.Abs(horizontal) > 0 && !isTurning180)
+		if(anim.GetCurrentAnimatorStateInfo(0).IsTag("Base"))
 		{
-			isMoving = true;
-			anim.SetFloat("horizontal", horizontal);
+			if(Input.GetKeyDown(KeyCode.Z)){
+				anim.SetInteger("State", (int)StateTransition.Override);
+			}
+		}
+		
+		if(anim.GetCurrentAnimatorStateInfo(1).IsTag("Attack"))
+		{
+			anim.SetInteger("State", (int)StateTransition.Base);
 			
+			if(Input.GetKeyDown(KeyCode.Z)){
+				anim.SetBool("ComboSuccess", true);
+			}
 		}
-		else
-		{
-			isMoving = false;
-			anim.SetFloat("horizontal", 0.0f);
-		}
-
-
-		lastHorizontalInput = horizontal;
+		
+		anim.SetFloat("forwardVelocity", Mathf.Abs(horizontal));
 	}
 
 	void FixedUpdate(){
@@ -101,11 +99,11 @@ public class PlayerController : MonoBehaviour {
 		}
 
 		///Set Vertical movement
-		if(vertical > 0.0f && isGrounded)
+		if(vertical > 0.0f && Ground)
 		{
 			//Jump!
 			body.velocity += JumpVelocity();
-			isGrounded = false;
+			Ground = false;
 		}
 		
 		forwardVelocity = Mathf.Clamp(forwardVelocity, -maxSpeed, maxSpeed);
@@ -119,7 +117,7 @@ public class PlayerController : MonoBehaviour {
 
 	void OnCollisionEnter(Collision c){
 		if(Vector3.Dot(transform.up, c.gameObject.transform.up) == 1.0f){
-			isGrounded = true;
+			Ground = true;
 		}
 	}
 
@@ -148,5 +146,22 @@ public class PlayerController : MonoBehaviour {
 			hitboxes[i].gameObject.GetComponent<BoxCollider>().enabled = false;
 		}
 	}
+
+	void GetAttackAnimation(){
+		AnimatorClipInfo[] m_CurrentClipInfo;
+		m_CurrentClipInfo = anim.GetCurrentAnimatorClipInfo(0);
+		if(m_CurrentClipInfo[0].clip.name == "attack1"){
+
+		}
+	}
+
+
+////ATTACKS
+
+	void BnB1(int damage, float knockback)
+	{
+
+	}
+
 
 }
