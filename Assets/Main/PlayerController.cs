@@ -16,15 +16,18 @@ public class PlayerController : MonoBehaviour {
 	bool isMoving = false;
 	bool isGrounded = false;
 	bool isTurning180 = false;
+	bool isAttacking = false;
 	float lastHorizontalInput;
 
 	Animator anim;
 	Rigidbody body;
+	public List<GameObject> hitboxes = new List<GameObject>();
 
 	void Start(){
 		anim = GetComponentInChildren<Animator>();
 		body = GetComponent<Rigidbody>();
-
+		GetHitboxes();
+		
 	}
 
 
@@ -35,7 +38,7 @@ public class PlayerController : MonoBehaviour {
 		vertical = Input.GetAxisRaw("Vertical");
 		
 		//Facing
-		if(horizontal > 0)
+		if(horizontal > 0) //TODO: Replace with smooth turn animation
 		{
 			transform.rotation = Quaternion.Euler(transform.rotation.x, 0.0f + 90.0f, transform.rotation.z);
 		}
@@ -43,33 +46,32 @@ public class PlayerController : MonoBehaviour {
 		{
 			transform.rotation = Quaternion.Euler(transform.rotation.x, 180.0f + 90.0f, transform.rotation.z);
 		}
+
 		
-		//If player inputs to run opposite direction
-			//And current forwardVelocity is maxspeed
-				//Play turn anim
-
-
-			//TODO - FIX 180 TURNING
-		// if(horizontal == -1 && forwardVelocity > 0.0f){
-		// 	anim.SetTrigger("isTurning180");
-		// 	Debug.Log("Turn!");
-		// 	isTurning180 = true;
-		// }
-		// else if(horizontal == 1 && forwardVelocity < 0.0f){
-		// 	anim.SetTrigger("isTurning180");
-		// 	Debug.Log("Turn!");
-		// 	isTurning180 = true;
-		// }
-
-
+		
+		
+		
 		//Animation
+		if(anim.GetCurrentAnimatorStateInfo(0).IsName("Idle")){
+			Debug.Log("IDLE");
+			isAttacking = false;
+			anim.SetBool("isAttacking", isAttacking);
+		}
+
+		if(Input.GetKeyDown(KeyCode.Z)){
+			isAttacking = true;
+			anim.SetBool("isAttacking", isAttacking);
+			anim.SetTrigger("attackTrigger");
+
+		}
+
+
 		anim.SetBool("isMoving", isMoving);
 		anim.SetFloat("forwardVelocity", Mathf.Abs(horizontal));
 
 		if(Mathf.Abs(horizontal) > 0 && !isTurning180)
 		{
 			isMoving = true;
-			// isTurning180 = false; //TODO FIX
 			anim.SetFloat("horizontal", horizontal);
 			
 		}
@@ -122,10 +124,24 @@ public class PlayerController : MonoBehaviour {
 		}
 	}
 
+	void OnTriggerEnter(Collider c){
+		if(c.gameObject.tag == "Enemy")
+			Debug.Log("Hit!");
+	}
 
 ////FUNCTIONS
 
 	Vector3 JumpVelocity(){
 		return -Physics.gravity.normalized * Mathf.Sqrt(2 * jumpHeight * Physics.gravity.magnitude);
 	}
+
+
+
+	void GetHitboxes(){
+		for(int i = 0; i < GameObject.FindGameObjectsWithTag("Hitbox").Length; i++){
+			hitboxes.Add(GameObject.FindGameObjectsWithTag("Hitbox")[i]);
+			hitboxes[i].gameObject.GetComponent<BoxCollider>().enabled = false;
+		}
+	}
+
 }
